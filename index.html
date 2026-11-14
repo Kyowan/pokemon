@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>포켓몬 퀴즈 대모험! - 6세 맞춤 수집 웹게임</title>
-  <link rel="stylesheet" href="css/style.css?v=20261115c" />
+  <link rel="stylesheet" href="css/style.css?v=20261115d" />
 </head>
 <body>
   <div id="app">
@@ -523,22 +523,43 @@
                 아이 얼굴 사진을 올리면 캐릭터 얼굴 속에 쏙 들어가서 걸어다닐 때마다 귀엽게 움직입니다!
               </p>
 
+              <!-- 사진첩 파일 선택용 input & 모바일/태블릿 즉시 전면 카메라 실행용 input -->
               <input id="profile-photo-input" type="file" accept="image/*" class="hidden" />
+              <input id="profile-camera-input" type="file" accept="image/*" capture="user" class="hidden" />
 
               <div class="photo-btn-row">
+                <button id="btn-take-camera" type="button" class="photo-camera-btn">
+                  📸 지금 카메라로 얼굴 찍기
+                </button>
                 <button id="btn-upload-photo" type="button" class="photo-upload-btn">
-                  📷 내 얼굴 사진 고르기 / 카메라 촬영
+                  🖼️ 사진첩(앨범)에서 고르기
                 </button>
                 <button id="btn-clear-photo" type="button" class="photo-clear-btn hidden">
                   🗑️ 사진 지우기
                 </button>
               </div>
 
+              <!-- 웹캠 라이브 촬영 박스 (PC 또는 브라우저 내장 카메라 촬영 시 자동 오픈) -->
+              <div id="webcam-capture-box" class="webcam-capture-box hidden">
+                <div class="webcam-video-wrap">
+                  <video id="webcam-video" autoplay playsinline muted class="webcam-video"></video>
+                  <div class="webcam-face-guide"></div>
+                </div>
+                <div class="webcam-btn-row">
+                  <button id="btn-webcam-snap" type="button" class="webcam-snap-btn">
+                    📸 찰칵! 이 얼굴로 찍기
+                  </button>
+                  <button id="btn-webcam-cancel" type="button" class="webcam-cancel-btn">
+                    ✕ 닫기
+                  </button>
+                </div>
+              </div>
+
               <!-- 사진 확대/위치 조절 슬라이더 (사진이 있을 때 표시) -->
               <div id="photo-adjust-box" class="photo-adjust-box hidden">
                 <div class="adjust-row">
-                  <label for="photo-zoom-range">🔍 얼굴 크기 확대</label>
-                  <input id="photo-zoom-range" type="range" min="100" max="220" step="5" value="120" />
+                  <label for="photo-zoom-range">🔍 얼굴 크기 조절</label>
+                  <input id="photo-zoom-range" type="range" min="80" max="220" step="5" value="100" />
                 </div>
                 <div class="adjust-row">
                   <label for="photo-offset-range">↕️ 얼굴 위·아래 위치</label>
@@ -675,10 +696,10 @@
   </div>
 
   <!-- 데이터 및 스크립트 로드 (캐시 방지 버전 쿼리 포함) -->
-  <script src="data/pokemon.js?v=20261115c"></script>
-  <script src="data/questions.js?v=20261115c"></script>
-  <script src="js/sound.js?v=20261115c"></script>
-  <script src="js/storage.js?v=20261115c"></script>
-  <script src="js/game.js?v=20261115c"></script>
+  <script src="data/pokemon.js?v=20261115d"></script>
+  <script src="data/questions.js?v=20261115d"></script>
+  <script src="js/sound.js?v=20261115d"></script>
+  <script src="js/storage.js?v=20261115d"></script>
+  <script src="js/game.js?v=20261115d"></script>
 </body>
 </html>

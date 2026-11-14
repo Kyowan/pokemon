@@ -195,7 +195,9 @@ function registerEl(id, tag = 'div', classes = []) {
   'modal-profile', 'profile-modal-title', 'btn-close-profile', 'profile-wizard-tabs',
   'profile-live-figure', 'profile-live-hat', 'profile-live-photo', 'profile-live-emoji', 'profile-live-body',
   'profile-step-1', 'profile-step-2', 'profile-step-3',
-  'profile-photo-input', 'btn-upload-photo', 'btn-clear-photo', 'photo-adjust-box', 'photo-zoom-range', 'photo-offset-range',
+  'profile-photo-input', 'profile-camera-input', 'btn-take-camera', 'btn-upload-photo', 'btn-clear-photo',
+  'webcam-capture-box', 'webcam-video', 'btn-webcam-snap', 'btn-webcam-cancel',
+  'photo-adjust-box', 'photo-zoom-range', 'photo-offset-range',
   'avatar-select-grid', 'hat-select-row',
   'profile-player-name', 'profile-team-name', 'profile-preview-greeting',
   'btn-profile-prev-step', 'btn-profile-next-step', 'btn-save-profile'

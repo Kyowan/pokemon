@@ -606,6 +606,10 @@
       const nameInput = document.getElementById('profile-player-name');
       const teamInput = document.getElementById('profile-team-name');
 
+      const takeCameraBtn = document.getElementById('btn-take-camera');
+      const cameraFileInput = document.getElementById('profile-camera-input');
+      const webcamSnapBtn = document.getElementById('btn-webcam-snap');
+      const webcamCancelBtn = document.getElementById('btn-webcam-cancel');
       const uploadPhotoBtn = document.getElementById('btn-upload-photo');
       const clearPhotoBtn = document.getElementById('btn-clear-photo');
       const photoFileInput = document.getElementById('profile-photo-input');
@@ -629,6 +633,7 @@
       if (closeBtn) {
         closeBtn.addEventListener('click', () => {
           window.SoundFX.click();
+          this.stopWebcamCapture();
           document.getElementById('modal-profile').classList.add('hidden');
         });
       }
@@ -656,10 +661,42 @@
         });
       }
 
-      // 아이 얼굴 사진 업로드 버튼 -> 파일 선택창 열기
+      // 1) 📸 지금 카메라로 얼굴 찍기 버튼 (브라우저 실시간 셀카 카메라 우선 실행 -> 미지원 시 모바일 전면 카메라 input 실행)
+      if (takeCameraBtn) {
+        takeCameraBtn.addEventListener('click', () => {
+          window.SoundFX.click();
+          this.startWebcamCapture();
+        });
+      }
+
+      if (cameraFileInput) {
+        cameraFileInput.addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          this.handlePhotoFileSelected(file);
+          cameraFileInput.value = '';
+        });
+      }
+
+      if (webcamSnapBtn) {
+        webcamSnapBtn.addEventListener('click', () => {
+          window.SoundFX.click();
+          this.snapWebcamPhoto();
+        });
+      }
+
+      if (webcamCancelBtn) {
+        webcamCancelBtn.addEventListener('click', () => {
+          window.SoundFX.click();
+          this.stopWebcamCapture();
+        });
+      }
+
+      // 2) 🖼️ 사진첩(앨범)에서 고르기 버튼 -> 파일 선택창 열기
       if (uploadPhotoBtn && photoFileInput) {
         uploadPhotoBtn.addEventListener('click', () => {
           window.SoundFX.click();
+          this.stopWebcamCapture();
           photoFileInput.click();
         });
 
@@ -675,6 +712,7 @@
       if (clearPhotoBtn) {
         clearPhotoBtn.addEventListener('click', () => {
           window.SoundFX.click();
+          this.stopWebcamCapture();
           this.draftPhotoDataUrl = '';
           this.draftRawImage = null;
           const activeCard = document.querySelector('[data-avatar].active');
@@ -765,6 +803,7 @@
 
       if (saveBtn) {
         saveBtn.addEventListener('click', () => {
+          this.stopWebcamCapture();
           const activeCard = document.querySelector('[data-avatar].active');
           const activeHat = document.querySelector('[data-hat].active');
           let avatarId = activeCard ? activeCard.getAttribute('data-avatar') : 'red';
@@ -782,7 +821,7 @@
             avatarId,
             hatStyle,
             photoDataUrl: this.draftPhotoDataUrl || '',
-            photoZoom: this.draftPhotoZoom || 1.2,
+            photoZoom: this.draftPhotoZoom || 1.0,
             photoOffsetY: this.draftPhotoOffsetY || 0,
           });
           window.SoundFX.correct();
@@ -790,6 +829,87 @@
           document.getElementById('modal-profile').classList.add('hidden');
         });
       }
+    }
+
+    startWebcamCapture() {
+      const webcamBox = document.getElementById('webcam-capture-box');
+      const videoEl = document.getElementById('webcam-video');
+      const cameraFileInput = document.getElementById('profile-camera-input');
+
+      // 브라우저 실시간 카메라(getUserMedia) 지원 시 화면 안에 셀카 프리뷰 즉시 오픈
+      if (
+        typeof navigator !== 'undefined' &&
+        navigator.mediaDevices &&
+        typeof navigator.mediaDevices.getUserMedia === 'function' &&
+        videoEl &&
+        webcamBox
+      ) {
+        this.stopWebcamCapture();
+        navigator.mediaDevices
+          .getUserMedia({
+            video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 480 } },
+            audio: false,
+          })
+          .then((stream) => {
+            this.webcamStream = stream;
+            videoEl.srcObject = stream;
+            webcamBox.classList.remove('hidden');
+            if (typeof videoEl.play === 'function') {
+              videoEl.play().catch(() => {});
+            }
+          })
+          .catch(() => {
+            // 카메라 권한 거부 또는 기기 미지원 시 모바일 전면 카메라 input(capture="user")으로 폴백
+            if (cameraFileInput) cameraFileInput.click();
+          });
+      } else if (cameraFileInput) {
+        cameraFileInput.click();
+      }
+    }
+
+    stopWebcamCapture() {
+      if (this.webcamStream) {
+        try {
+          this.webcamStream.getTracks().forEach((track) => track.stop());
+        } catch (e) {}
+        this.webcamStream = null;
+      }
+      const videoEl = document.getElementById('webcam-video');
+      if (videoEl) {
+        videoEl.srcObject = null;
+      }
+      const webcamBox = document.getElementById('webcam-capture-box');
+      if (webcamBox) {
+        webcamBox.classList.add('hidden');
+      }
+    }
+
+    snapWebcamPhoto() {
+      const videoEl = document.getElementById('webcam-video');
+      if (!videoEl) return;
+
+      try {
+        const vw = videoEl.videoWidth || 360;
+        const vh = videoEl.videoHeight || 360;
+        const side = Math.min(vw, vh);
+        const sx = (vw - side) / 2;
+        const sy = (vh - side) / 2;
+
+        const snapCanvas = document.createElement('canvas');
+        snapCanvas.width = 240;
+        snapCanvas.height = 240;
+        const sctx = snapCanvas.getContext('2d');
+        if (sctx) {
+          // 거울 모드(좌우 반전) 그대로 자연스럽게 캡처
+          sctx.translate(240, 0);
+          sctx.scale(-1, 1);
+          sctx.drawImage(videoEl, sx, sy, side, side, 0, 0, 240, 240);
+          const snappedUrl = snapCanvas.toDataURL('image/jpeg', 0.88);
+          this.applyRawPhotoDataUrl(snappedUrl);
+        }
+      } catch (e) {}
+
+      this.stopWebcamCapture();
     }
 
     setProfileWizardStep(stepNum) {
@@ -832,36 +952,40 @@
       }
     }
 
+    applyRawPhotoDataUrl(rawDataUrl) {
+      if (typeof rawDataUrl !== 'string' || !rawDataUrl) return;
+      const img = new Image();
+      img.onload = () => {
+        this.draftRawImage = img;
+        this.draftPhotoZoom = 1.0;
+        this.draftPhotoOffsetY = 0;
+
+        const zoomRange = document.getElementById('photo-zoom-range');
+        const offsetRange = document.getElementById('photo-offset-range');
+        if (zoomRange) zoomRange.value = '100';
+        if (offsetRange) offsetRange.value = '0';
+
+        this.rebuildCroppedPhotoFromRaw();
+
+        // 사진을 올리면 자동으로 '📸 내 얼굴 사진 대장' 아바타 활성화
+        document.querySelectorAll('[data-avatar]').forEach((c) =>
+          c.classList.toggle('active', c.getAttribute('data-avatar') === 'photo')
+        );
+
+        this.updatePhotoAdjustControlsUI();
+        this.updateProfilePreviewText();
+        window.SoundFX.correct();
+      };
+      img.src = rawDataUrl;
+    }
+
     handlePhotoFileSelected(file) {
       if (typeof FileReader === 'undefined') return;
       const reader = new FileReader();
       reader.onload = (ev) => {
         const rawDataUrl = ev.target && ev.target.result;
         if (typeof rawDataUrl !== 'string') return;
-
-        const img = new Image();
-        img.onload = () => {
-          this.draftRawImage = img;
-          this.draftPhotoZoom = 1.2;
-          this.draftPhotoOffsetY = 0;
-
-          const zoomRange = document.getElementById('photo-zoom-range');
-          const offsetRange = document.getElementById('photo-offset-range');
-          if (zoomRange) zoomRange.value = '120';
-          if (offsetRange) offsetRange.value = '0';
-
-          this.rebuildCroppedPhotoFromRaw();
-
-          // 사진을 올리면 자동으로 '📸 내 얼굴 사진 대장' 아바타 활성화
-          document.querySelectorAll('[data-avatar]').forEach((c) =>
-            c.classList.toggle('active', c.getAttribute('data-avatar') === 'photo')
-          );
-
-          this.updatePhotoAdjustControlsUI();
-          this.updateProfilePreviewText();
-          window.SoundFX.correct();
-        };
-        img.src = rawDataUrl;
+        this.applyRawPhotoDataUrl(rawDataUrl);
       };
       reader.readAsDataURL(file);
     }
@@ -886,7 +1010,7 @@
           const iw = this.draftRawImage.width || size;
           const ih = this.draftRawImage.height || size;
           const baseScale = Math.max(size / iw, size / ih);
-          const zoom = this.draftPhotoZoom || 1.2;
+          const zoom = this.draftPhotoZoom || 1.0;
           const drawW = iw * baseScale * zoom;
           const drawH = ih * baseScale * zoom;
           const dx = (size - drawW) / 2;
@@ -907,13 +1031,19 @@
       const clearBtn = document.getElementById('btn-clear-photo');
       const adjustBox = document.getElementById('photo-adjust-box');
       const uploadBtn = document.getElementById('btn-upload-photo');
+      const takeCameraBtn = document.getElementById('btn-take-camera');
 
       if (clearBtn) clearBtn.classList.toggle('hidden', !hasPhoto);
       if (adjustBox) adjustBox.classList.toggle('hidden', !hasPhoto);
+      if (takeCameraBtn) {
+        takeCameraBtn.textContent = hasPhoto
+          ? '📸 카메라로 다시 찍기'
+          : '📸 지금 카메라로 얼굴 찍기';
+      }
       if (uploadBtn) {
         uploadBtn.textContent = hasPhoto
-          ? '📷 다른 얼굴 사진으로 바꾸기'
-          : '📷 내 얼굴 사진 고르기 / 카메라 촬영';
+          ? '🖼️ 사진첩에서 다른 사진 고르기'
+          : '🖼️ 사진첩(앨범)에서 고르기';
       }
     }
 
@@ -1850,34 +1980,35 @@
         ctx.stroke();
       }
 
-      // 3) 머리 위 모자·장식 그리기 (사진 얼굴 위에도 씌워짐!)
+      // 3) 머리 꼭대기 위 모자·장식 그리기 (아이 얼굴 사진을 절대 가리지 않도록 정수리 위쪽에 얹음!)
       if (hatStyle === 'cap') {
+        const capBaseY = -headRadius + 3; // y = -18 (얼굴 원 y = -21..+21 중 맨 위 테두리에만 살짝 걸침)
         ctx.fillStyle = avatarMeta.hatColor || '#ef476f';
         ctx.strokeStyle = '#1d3557';
-        ctx.lineWidth = 3.5;
+        ctx.lineWidth = 3.2;
         ctx.beginPath();
-        ctx.arc(0, -5, headRadius + 1, Math.PI, 0, false);
+        ctx.arc(0, capBaseY, 15.5, Math.PI, 0, false);
         ctx.fill();
         ctx.stroke();
 
         // 모자 앞 흰색 반원 마크
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(0, -10, 7, Math.PI, 0, false);
+        ctx.arc(0, capBaseY - 1, 5.5, Math.PI, 0, false);
         ctx.fill();
 
-        // 모자 챙
+        // 모자 챙 (이마 위쪽 정수리 라인에 위치하여 얼굴 사진을 가리지 않음)
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.roundRect(p.facing > 0 ? -4 : -24, -8, 28, 7, 4);
+        ctx.roundRect(p.facing > 0 ? -2 : -20, capBaseY - 3, 22, 5.5, 3);
         ctx.fill();
         ctx.stroke();
       } else if (hatStyle === 'pika') {
-        // 쫑긋쫑긋 흔들리는 피카츄 귀
+        // 쫑긋쫑긋 흔들리는 피카츄 귀 (정수리 위로 솟음)
         const earWiggle = Math.sin(motionPhase * 1.4) * 0.12;
         [-1, 1].forEach((dir) => {
           ctx.save();
-          ctx.translate(dir * 12, -headRadius + 3);
+          ctx.translate(dir * 12, -headRadius + 1);
           ctx.rotate(dir * 0.38 + earWiggle * dir);
           ctx.fillStyle = '#ffb703';
           ctx.strokeStyle = '#1d3557';
@@ -1895,38 +2026,39 @@
           ctx.restore();
         });
       } else if (hatStyle === 'crown') {
-        // 반짝이는 황금 왕관
+        // 반짝이는 황금 왕관 (정수리 위)
         ctx.fillStyle = '#ffd166';
         ctx.strokeStyle = '#1d3557';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(-14, -headRadius + 4);
-        ctx.lineTo(-16, -headRadius - 11);
-        ctx.lineTo(-6, -headRadius - 3);
-        ctx.lineTo(0, -headRadius - 14);
-        ctx.lineTo(6, -headRadius - 3);
-        ctx.lineTo(16, -headRadius - 11);
-        ctx.lineTo(14, -headRadius + 4);
+        ctx.moveTo(-13, -headRadius + 2);
+        ctx.lineTo(-15, -headRadius - 12);
+        ctx.lineTo(-6, -headRadius - 4);
+        ctx.lineTo(0, -headRadius - 15);
+        ctx.lineTo(6, -headRadius - 4);
+        ctx.lineTo(15, -headRadius - 12);
+        ctx.lineTo(13, -headRadius + 2);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
       } else if (hatStyle === 'goggle') {
-        // 탐험가 고글 밴드
+        // 탐험가 고글 (얼굴을 가리지 않도록 머리 꼭대기/이마 맨 위에 착용)
+        const goggleY = -headRadius + 2;
         ctx.fillStyle = '#1d3557';
-        ctx.fillRect(-headRadius, -12, headRadius * 2, 5);
+        ctx.fillRect(-15, goggleY - 2, 30, 4);
         ctx.fillStyle = '#00f5d4';
         ctx.strokeStyle = '#1d3557';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.8;
         ctx.beginPath();
-        ctx.arc(-7, -10, 6.5, 0, Math.PI * 2);
-        ctx.arc(7, -10, 6.5, 0, Math.PI * 2);
+        ctx.arc(-6.5, goggleY, 5.5, 0, Math.PI * 2);
+        ctx.arc(6.5, goggleY, 5.5, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
       }
 
       ctx.restore(); // 얼굴 & 모자 회전 그룹 종료
 
-      // 머리 위 내 이름표 배지
+      // 머리 위 내 이름표 배지 (모자 위쪽에 겹치지 않게 배치)
       const badgeEmoji =
         (HAT_THEMES[hatStyle] && HAT_THEMES[hatStyle].emoji) || avatarMeta.emoji;
       const labelText = `${badgeEmoji} ${profile.playerName}`;
@@ -1938,14 +2070,14 @@
       ctx.strokeStyle = '#1d3557';
       ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.roundRect(-pillW / 2, -66, pillW, 22, 11);
+      ctx.roundRect(-pillW / 2, -76, pillW, 22, 11);
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = '#1d3557';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(labelText, 0, -55);
+      ctx.fillText(labelText, 0, -65);
 
       ctx.restore();
     }
