@@ -95,7 +95,7 @@
       shirtColor: '#ff5e57',
       skinColor: '#ffe5d9',
       hairColor: '#1e272e',
-      defaultHat: 'cap',
+      defaultHat: 'none',
     },
   };
 
@@ -967,9 +967,12 @@
 
         this.rebuildCroppedPhotoFromRaw();
 
-        // 사진을 올리면 자동으로 '📸 내 얼굴 사진 대장' 아바타 활성화
+        // 사진을 올리면 자동으로 '📸 내 얼굴 사진 대장' 아바타 활성화 & 사진이 가려지지 않도록 기본 '모자 없음(none)' 선택
         document.querySelectorAll('[data-avatar]').forEach((c) =>
           c.classList.toggle('active', c.getAttribute('data-avatar') === 'photo')
+        );
+        document.querySelectorAll('[data-hat]').forEach((h) =>
+          h.classList.toggle('active', h.getAttribute('data-hat') === 'none')
         );
 
         this.updatePhotoAdjustControlsUI();
