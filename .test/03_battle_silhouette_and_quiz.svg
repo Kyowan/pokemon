@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600">
+  <rect width="960" height="600" fill="#dff9fb"/>
+  <rect x="30" y="24" width="900" height="552" rx="24" fill="#ffffff" stroke="#2f3542" stroke-width="4"/>
+  <text x="65" y="72" font-family="Apple SD Gothic Neo, sans-serif" font-size="26" font-weight="bold">❤️❤️🖤 (남은 하트 2개)</text>
+  <text x="480" y="72" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="22" font-weight="bold" fill="#d63031">🌟 황금 몬스터볼 (전설·환상 · 문제 4개)</text>
+  <text x="890" y="72" text-anchor="end" font-family="Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="bold" fill="#1e272e">학습 문제 (1 / 4)</text>
+  <!-- Left Stage -->
+  <rect x="60" y="105" width="330" height="440" rx="18" fill="#fff9db" stroke="#2f3542" stroke-width="3.5"/>
+  <circle cx="225" cy="270" r="85" fill="#ffd32a" stroke="#2f3542" stroke-width="4"/>
+  <text x="225" y="280" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="28" font-weight="bold" fill="#1e272e">No.251 세레비</text>
+  <rect x="85" y="430" width="280" height="80" rx="14" fill="#ffffff" stroke="#2f3542" stroke-width="3"/>
+  <text x="225" y="468" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="24" font-weight="bold" fill="#1e272e">세레비 🌟 전설·환상</text>
+  <text x="225" y="496" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="18" font-weight="bold" fill="#20bf6b">[에스퍼 타입] [풀 타입]</text>
+  <!-- Right Quiz -->
+  <rect x="420" y="105" width="480" height="150" rx="18" fill="#fff9db" stroke="#2f3542" stroke-width="3.5"/>
+  <text x="660" y="175" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="25" font-weight="bold" fill="#1e272e">피카츄가 나무열매를 6개 가지고 있어요.</text>
+  <text x="660" y="212" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="25" font-weight="bold" fill="#1e272e">파이리가 4개를 더 주면 모두 몇 개일까요?</text>
+  <!-- 4 Options (1 disabled wrong, 3 active) -->
+  <rect x="420" y="290" width="230" height="90" rx="16" fill="#ced6e0" stroke="#747d8c" stroke-width="3.5"/>
+  <text x="535" y="345" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="26" font-weight="bold" fill="#747d8c" text-decoration="line-through">1. 8 (오답 비활성)</text>
+  <rect x="670" y="290" width="230" height="90" rx="16" fill="#7bed9f" stroke="#2f3542" stroke-width="3.5"/>
+  <text x="785" y="345" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="28" font-weight="bold" fill="#1e272e">2. 10 (정답!)</text>
+  <rect x="420" y="405" width="230" height="90" rx="16" fill="#ffffff" stroke="#2f3542" stroke-width="3.5"/>
+  <text x="535" y="460" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="28" font-weight="bold" fill="#1e272e">3. 9</text>
+  <rect x="670" y="405" width="230" height="90" rx="16" fill="#ffffff" stroke="#2f3542" stroke-width="3.5"/>
+  <text x="785" y="460" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="28" font-weight="bold" fill="#1e272e">4. 11</text>
+</svg>
