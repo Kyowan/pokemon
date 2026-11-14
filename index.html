@@ -249,6 +249,26 @@
                 <!-- 4지선다 버튼이 JS에서 렌더링됨 -->
               </div>
 
+              <!-- 영어 단어 정답 후 까이유 스타일 그림 + 영어/한글 예시 문장 스토리북 카드 -->
+              <div id="english-story-card" class="english-story-card hidden">
+                <div class="story-card-top">
+                  <div id="story-scene-emojis" class="story-scene-emojis">🍎 🍎</div>
+                  <div class="story-sentences-wrap">
+                    <span class="story-badge">🎬 까이유처럼 쉬운 영어 한 문장!</span>
+                    <p id="story-sentence-en" class="story-sentence-en">There are <mark class="story-word-highlight">two</mark> apples.</p>
+                    <p id="story-sentence-ko" class="story-sentence-ko">사과가 두 개 있어요.</p>
+                  </div>
+                </div>
+                <div class="story-card-actions">
+                  <button id="btn-story-replay" type="button" class="story-replay-btn">
+                    🔊 영어·한글 문장 다시 듣기
+                  </button>
+                  <button id="btn-story-next" type="button" class="story-next-btn">
+                    다음으로 넘어가기 ▶
+                  </button>
+                </div>
+              </div>
+
               <!-- 포획 완료 또는 도망 시 결과 액션 박스 -->
               <div id="battle-result-actions" class="battle-result-actions hidden">
                 <button id="btn-back-to-field" class="big-cta-btn primary-cta" type="button">

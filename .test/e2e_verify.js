@@ -177,7 +177,9 @@ function registerEl(id, tag = 'div', classes = []) {
   'battle-pokemon-img', 'battle-pokemon-fallback', 'capture-ball', 'capture-stars',
   'pokemon-reveal-banner', 'reveal-dex-no', 'reveal-pokemon-name', 'reveal-legendary-tag', 'reveal-pokemon-types',
   'battle-quiz-panel', 'quiz-category-badge', 'quiz-progress-text', 'quiz-question-box',
-  'quiz-feedback-banner', 'quiz-options-grid', 'battle-result-actions',
+  'quiz-feedback-banner', 'quiz-options-grid',
+  'english-story-card', 'story-scene-emojis', 'story-sentence-en', 'story-sentence-ko', 'btn-story-replay', 'btn-story-next',
+  'battle-result-actions',
   'btn-back-to-field', 'btn-battle-open-pokedex',
   'modal-pokedex', 'pokedex-modal-title', 'pokedex-summary-text', 'btn-close-pokedex',
   'dex-count-all', 'dex-count-caught', 'dex-count-legendary', 'btn-dex-peek-all', 'pokedex-grid',
@@ -391,40 +393,69 @@ const silAnswer = app.battle.pokemon.name;
 elementsById['quiz-options-grid'].children.find(b => b.getAttribute('data-option') === silAnswer).click();
 flushTimers();
 
-// Force Question 1 to be an English question ("BLACK") to test the new English TTS speaker button & letter-by-letter spelling!
+// Force Question 1 to be an English question ("TWO") to test the English TTS speaker button, letter-by-letter spelling, AND the new Caillou-style Bilingual Story Sentence Card!
 app.battle.questions[0] = {
   category: 'english',
-  q: "⬛ '검은색'을 영어로 무엇이라고 할까요?",
-  options: ['WHITE', 'BLUE', 'BLACK', 'BROWN'],
-  answer: 'BLACK'
+  q: "2️⃣ 숫자 '2(둘)'를 영어로 무엇이라고 할까요?",
+  options: ['ONE', 'TWO', 'THREE', 'FOUR'],
+  answer: 'TWO'
 };
 app.renderCurrentBattleQuestion();
 
-const blackOptionBtn = elementsById['quiz-options-grid'].children.find(
-  b => b.getAttribute('data-option') === 'BLACK'
+const twoOptionBtn = elementsById['quiz-options-grid'].children.find(
+  b => b.getAttribute('data-option') === 'TWO'
 );
-const blackSpeakBtn = blackOptionBtn.children.find(
+const twoSpeakBtn = twoOptionBtn.children.find(
   c => c.classList && c.classList.contains('eng-speak-btn')
 );
-assert(Boolean(blackSpeakBtn), 'English option button renders 🔊 발음 button (.eng-speak-btn)');
+assert(Boolean(twoSpeakBtn), 'English option button renders 🔊 발음 button (.eng-speak-btn)');
 assert(
   window.EnglishTTS.getKoreanLetterGuide('BLACK') === 'B(비) · L(엘) · A(에이) · C(씨) · K(케이)',
   'EnglishTTS Korean letter guide for BLACK is "B(비) · L(엘) · A(에이) · C(씨) · K(케이)"'
 );
 
 const heartsBeforeSpeak = app.battle.hearts;
-blackSpeakBtn.click();
+twoSpeakBtn.click();
 flushTimers();
 assert(app.battle.hearts === heartsBeforeSpeak, 'Clicking 🔊 발음 button does NOT submit answer or consume hearts');
 assert(
-  elementsById['quiz-feedback-banner'].textContent.indexOf('BLACK') !== -1,
-  'After spelling B-L-A-C-K, feedback banner shows full word pronunciation guide for BLACK'
+  elementsById['quiz-feedback-banner'].textContent.indexOf('TWO') !== -1,
+  'After spelling T-W-O, feedback banner shows full word pronunciation guide for TWO'
 );
 
+// Now answer Question 1 ("TWO") -> Verify Caillou-style Bilingual Story Sentence Card appears!
 const q1Ans = app.battle.questions[0].answer;
 elementsById['quiz-options-grid'].children.find(b => b.getAttribute('data-option') === q1Ans).click();
 flushTimers();
 
+assert(!elementsById['english-story-card'].classList.contains('hidden'), 'Answering English word ("TWO") reveals Caillou-style Story Sentence Card (#english-story-card)');
+assert(
+  elementsById['story-sentence-en'].innerHTML.indexOf('two') !== -1 &&
+  elementsById['story-sentence-en'].innerHTML.indexOf('apples') !== -1,
+  'Story card shows English example sentence ("There are two red apples.") with highlighted word'
+);
+assert(
+  elementsById['story-sentence-ko'].textContent.indexOf('사과가 두 개 있어요') !== -1,
+  'Story card shows Korean meaning ("빨간 사과가 두 개 있어요.")'
+);
+assert(
+  elementsById['story-scene-emojis'].textContent.indexOf('🍎') !== -1,
+  'Story card displays visual illustration scene emojis ("🍎 🍎 ✌️")'
+);
+
+// Click "다음 문제로 넘어가기 ▶" (#btn-story-next) to proceed to Question 2
+elementsById['btn-story-next'].click();
+flushTimers();
+assert(elementsById['english-story-card'].classList.contains('hidden'), 'Clicking #btn-story-next hides story card and advances to next question');
+
+// Make sure Question 2 is non-english (e.g. math) so answering it triggers capture directly
+app.battle.questions[1] = {
+  category: 'math',
+  q: '🔢 3 + 4 = ?',
+  options: ['6', '7', '8', '9'],
+  answer: '7'
+};
+app.renderCurrentBattleQuestion();
 const caughtPokemonId = app.battle.pokemon.id;
 const q2Ans = app.battle.questions[1].answer;
 elementsById['quiz-options-grid'].children.find(b => b.getAttribute('data-option') === q2Ans).click();

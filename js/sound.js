@@ -424,7 +424,98 @@
     Z: '지',
   };
 
-  // macOS/iOS 내장 장난감/특수효과 음성 블랙리스트 (절대 선택되지 않도록 차단)
+  // 88개 영어 학습 단어 전체에 대한 까이유(Caillou) 스타일 쉬운 예시 문장 + 한글 뜻 + 그림(이모지 장면) 사전
+  const ENGLISH_STORY_SENTENCES = {
+    APPLE: { scene: '🍎 😋', en: 'I like red apples.', ko: '나는 빨간 사과를 좋아해요.' },
+    BANANA: { scene: '🐵 🍌', en: 'The monkey eats a banana.', ko: '원숭이가 바나나를 먹어요.' },
+    GRAPE: { scene: '🍇 💜', en: 'These purple grapes are sweet!', ko: '이 보라색 포도는 정말 달콤해요!' },
+    ORANGE: { scene: '🍊 🧃', en: 'Would you like an orange?', ko: '새콤달콤한 오렌지 먹을래요?' },
+    PEACH: { scene: '🍑 😊', en: 'This pink peach is so soft.', ko: '이 분홍빛 복숭아는 아주 말랑해요.' },
+    WATERMELON: { scene: '🍉 ☀️', en: 'We eat cold watermelon in summer.', ko: '우리는 여름에 시원한 수박을 먹어요.' },
+    STRAWBERRY: { scene: '🍓 🍰', en: 'There is a strawberry on the cake.', ko: '케이크 위에 딸기가 하나 있어요.' },
+    LEMON: { scene: '🍋 😝', en: 'The yellow lemon is very sour!', ko: '노란 레몬은 아이셔, 아주 시어요!' },
+    DOG: { scene: '🐶 🎾', en: 'The cute dog runs fast.', ko: '귀여운 강아지가 빠르게 달려요.' },
+    CAT: { scene: '🐱 🧶', en: 'The little cat is sleeping.', ko: '작은 고양이가 쿨쿨 자고 있어요.' },
+    PIG: { scene: '🐷 🌸', en: 'Look at the pink pig!', ko: '저기 분홍색 아기 돼지를 봐요!' },
+    COW: { scene: '🐮 🥛', en: 'The cow gives us fresh milk.', ko: '소는 우리에게 맛있는 우유를 줘요.' },
+    LION: { scene: '🦁 👑', en: 'The lion is the king of animals.', ko: '사자는 동물들의 멋진 왕이에요.' },
+    TIGER: { scene: '🐯 🌲', en: 'The tiger has black stripes.', ko: '호랑이는 멋진 검은 줄무늬가 있어요.' },
+    BEAR: { scene: '🐻 🍯', en: 'The big bear loves sweet honey.', ko: '커다란 곰은 달콤한 꿀을 좋아해요.' },
+    RABBIT: { scene: '🐰 🥕', en: 'The white rabbit hops, hop, hop!', ko: '하얀 토끼가 깡충깡충 뛰어가요!' },
+    MONKEY: { scene: '🐵 🌴', en: 'The monkey climbs up the tree.', ko: '원숭이가 나무 위로 쏙쏙 올라가요.' },
+    ELEPHANT: { scene: '🐘 🚿', en: 'The elephant has a long nose.', ko: '코끼리는 코가 아주 길어요.' },
+    GIRAFFE: { scene: '🦒 🌿', en: 'The giraffe has a very long neck.', ko: '기린은 목이 아주아주 길어요.' },
+    PENGUIN: { scene: '🐧 ❄️', en: 'The penguin walks on the ice.', ko: '펭귄이 얼음 위를 뒤뚱뒤뚱 걸어요.' },
+    DOLPHIN: { scene: '🐬 🌊', en: 'The dolphin jumps in the blue sea.', ko: '돌고래가 푸른 바다에서 점프해요.' },
+    TURTLE: { scene: '🐢 🏖️', en: 'The turtle walks slowly.', ko: '거북이가 엉금엉금 천천히 걸어가요.' },
+    FROG: { scene: '🐸 🪷', en: 'The green frog can jump high!', ko: '초록 개구리는 높이 점프할 수 있어요!' },
+    DUCK: { scene: '🦆 🐤', en: 'The yellow duck swims in the pond.', ko: '노란 오리가 연못에서 헤엄쳐요.' },
+    BIRD: { scene: '🐦 🎵', en: 'A little bird sings in the tree.', ko: '작은 새가 나무에서 즐겁게 노래해요.' },
+    FISH: { scene: '🐟 🫧', en: 'The fish swims in the water.', ko: '물고기가 물속에서 신나게 헤엄쳐요.' },
+    BEE: { scene: '🐝 🌻', en: 'The busy bee likes yellow flowers.', ko: '부지런한 꿀벌은 노란 꽃을 좋아해요.' },
+    ANT: { scene: '🐜 🐜 🍃', en: 'The little ants work together.', ko: '작은 개미들이 힘을 모아 일해요.' },
+    BUTTERFLY: { scene: '🦋 🌸', en: 'A pretty butterfly flies in the sky.', ko: '예쁜 나비가 하늘을 훨훨 날아요.' },
+    SPIDER: { scene: '🕷️ 🕸️', en: 'The spider makes a big web.', ko: '거미가 커다란 거미줄을 만들어요.' },
+    SNAKE: { scene: '🐍 🌿', en: 'The long snake moves in the grass.', ko: '긴 뱀이 풀숲을 스르르 지나가요.' },
+    SHEEP: { scene: '🐑 ☁️', en: 'The white sheep is soft like a cloud.', ko: '하얀 양은 구름처럼 포근해요.' },
+    HORSE: { scene: '🐴 🌾', en: 'The brown horse runs across the field.', ko: '갈색 말이 들판을 멋지게 달려요.' },
+    MOUSE: { scene: '🐭 🧀', en: 'The tiny mouse likes yellow cheese.', ko: '작은 생쥐는 노란 치즈를 좋아해요.' },
+    PANDA: { scene: '🐼 🎋', en: 'The cute panda eats green bamboo.', ko: '귀여운 판다가 초록 대나무를 먹어요.' },
+    RED: { scene: '🍎 🚒 ❤️', en: 'The fire truck is bright red.', ko: '소방차는 반짝이는 빨간색이에요.' },
+    BLUE: { scene: '🌤️ 🌊 💙', en: 'The sky is so clear and blue.', ko: '오늘 하늘이 정말 맑고 파래요.' },
+    YELLOW: { scene: '🌻 🍌 💛', en: 'Pikachu is bright yellow!', ko: '피카츄는 반짝이는 노란색이에요!' },
+    GREEN: { scene: '🌳 🐸 💚', en: 'The leaves on the tree are green.', ko: '나무에 달린 잎사귀들이 초록색이에요.' },
+    PURPLE: { scene: '🍇 🔮 💜', en: 'I drew a flower with purple crayon.', ko: '보라색 크레파스로 예쁜 꽃을 그렸어요.' },
+    PINK: { scene: '🌸 🎀 🩷', en: 'Look at the pretty pink flowers!', ko: '저기 예쁜 분홍색 꽃들을 봐요!' },
+    BLACK: { scene: '🐈‍⬛ 🎩 ⬛', en: 'My cat has shiny black fur.', ko: '우리 고양이는 반짝이는 검은 털을 가졌어요.' },
+    WHITE: { scene: '⛄ ☁️ ⬜', en: 'Let us make a big white snowman!', ko: '우리 커다랗고 하얀 눈사람을 만들어요!' },
+    BROWN: { scene: '🧸 🍫 🟫', en: 'I have a soft brown teddy bear.', ko: '나에게는 폭신한 갈색 곰인형이 있어요.' },
+    ONE: { scene: '☀️ ☝️', en: 'There is one bright sun in the sky.', ko: '하늘에 밝은 해님이 하나 떠 있어요.' },
+    TWO: { scene: '🍎 🍎 ✌️', en: 'There are two red apples.', ko: '빨간 사과가 두 개 있어요.' },
+    THREE: { scene: '🐷 🐷 🐷', en: 'Here are three little pigs.', ko: '여기 아기 돼지 삼형제(세 마리)가 있어요.' },
+    FOUR: { scene: '🚗 🛞 🛞', en: 'A car has four round wheels.', ko: '자동차는 동그란 바퀴가 네 개 있어요.' },
+    FIVE: { scene: '✋ ⭐', en: 'I have five fingers on my hand.', ko: '내 손에는 손가락이 다섯 개 있어요.' },
+    SIX: { scene: '🎂 🕯️ 6️⃣', en: 'I am six years old today!', ko: '나는 오늘 여섯 살이에요!' },
+    SEVEN: { scene: '🌈 🎨', en: 'A rainbow has seven pretty colors.', ko: '무지개는 일곱 가지 예쁜 색깔이 있어요.' },
+    EIGHT: { scene: '🐙 🌊', en: 'An octopus has eight long legs.', ko: '문어는 긴 다리가 여덟 개 있어요.' },
+    NINE: { scene: '🎈 🎈 9️⃣', en: 'I see nine balloons in the sky.', ko: '하늘에 풍선이 아홉 개 떠 있어요.' },
+    TEN: { scene: '👐 🌟 🔟', en: 'Let us count from one to ten!', ko: '우리 하나부터 열까지 함께 세어 볼까요!' },
+    SUN: { scene: '☀️ 😊', en: 'The warm sun shines in the morning.', ko: '아침에 따뜻한 해님이 반짝 빛나요.' },
+    MOON: { scene: '🌙 🌌', en: 'Good night, bright yellow moon!', ko: '밝고 노란 달님, 안녕히 주무세요!' },
+    STAR: { scene: '⭐ 🌠 ✨', en: 'Twinkle, twinkle, little star!', ko: '반짝반짝 작은 별이 아름답게 비치네!' },
+    CLOUD: { scene: '☁️ 🌤️', en: 'White clouds float in the blue sky.', ko: '하얀 구름이 파란 하늘에 둥실 떠 있어요.' },
+    RAIN: { scene: '🌧️ ☔', en: 'Rain is falling! Take your umbrella.', ko: '비가 내려요! 우산을 챙겨요.' },
+    SNOW: { scene: '❄️ ⛄', en: 'White snow is falling from the sky.', ko: '하늘에서 하얀 눈이 소복소복 내려요.' },
+    RAINBOW: { scene: '🌈 ☀️', en: 'Look! There is a big rainbow!', ko: '우와 봐요! 하늘에 커다란 무지개가 떴어요!' },
+    TREE: { scene: '🌳 🐿️', en: 'A big green tree stands in the park.', ko: '공원에 커다란 초록 나무가 서 있어요.' },
+    FLOWER: { scene: '🌸 🐝', en: 'This pretty flower smells so good.', ko: '이 예쁜 꽃은 향기가 정말 좋아요.' },
+    CAR: { scene: '🚗 🛣️', en: 'Daddy drives our family car.', ko: '아빠가 우리 가족 자동차를 운전해요.' },
+    BUS: { scene: '🚌 🧒', en: 'We ride the yellow bus together.', ko: '우리는 노란 버스를 함께 타요.' },
+    TRAIN: { scene: '🚂 🛤️', en: 'Choo-choo! Here comes the fast train.', ko: '칙칙폭폭! 빠른 기차가 달려와요.' },
+    AIRPLANE: { scene: '✈️ ☁️', en: 'The airplane flies high in the clouds.', ko: '비행기가 구름 위로 높이 날아가요.' },
+    BICYCLE: { scene: '🚲 ヘルメット', en: 'I can ride my bicycle in the park.', ko: '나는 공원에서 신나게 자전거를 탈 수 있어요.' },
+    SHIP: { scene: '🚢 🌊', en: 'A big ship sails across the sea.', ko: '커다란 배가 바다 위를 멋지게 나아가요.' },
+    BOOK: { scene: '📖 👨‍👩‍👦', en: 'Mommy reads a fun story book to me.', ko: '엄마가 나에게 재미있는 동화책을 읽어 줘요.' },
+    PENCIL: { scene: '✏️ 📝', en: 'I write my name with a pencil.', ko: '나는 연필로 내 이름을 멋지게 써요.' },
+    BAG: { scene: '🎒 😊', en: 'I put my favorite toys in my bag.', ko: '가방 속에 내가 좋아하는 장난감을 넣었어요.' },
+    HAT: { scene: '🧢 ☀️', en: 'Put on your hat before going out!', ko: '밖에 나가기 전에 멋진 모자를 써요!' },
+    SHOES: { scene: '👟 🏃', en: 'I put on my shoes and run outside.', ko: '나는 신발을 신고 밖으로 신나게 달려가요.' },
+    MILK: { scene: '🥛 💪', en: 'I drink a cup of warm milk.', ko: '나는 따뜻한 우유 한 잔을 꿀꺽 마셔요.' },
+    WATER: { scene: '💧 🥤', en: 'Please give me a cup of cold water.', ko: '시원한 물 한 컵만 주세요.' },
+    BREAD: { scene: '🍞 🧈', en: 'Warm bread smells so delicious!', ko: '따뜻하게 구운 빵 냄새가 정말 맛있어요!' },
+    CAKE: { scene: '🎂 🎉', en: 'Happy birthday! Let us eat sweet cake.', ko: '생일 축하해요! 달콤한 케이크를 함께 먹어요.' },
+    EGG: { scene: '🥚 🍳', en: 'I had a yummy egg for breakfast.', ko: '오늘 아침으로 맛있는 달걀 요리를 먹었어요.' },
+    HOUSE: { scene: '🏠 🌷', en: 'Welcome to our warm and happy house!', ko: '따뜻하고 행복한 우리 집에 온 걸 환영해요!' },
+    SCHOOL: { scene: '🏫 👫', en: 'I play with my friends at school.', ko: '나는 학교에서 친구들과 재미있게 놀아요.' },
+    CROWN: { scene: '👑 ✨', en: 'The prince wears a shiny gold crown.', ko: '왕자님이 반짝이는 황금 왕관을 썼어요.' },
+    BALL: { scene: '⚽ 🐕', en: 'Let us play catch with this round ball!', ko: '우리 이 동그란 공으로 공놀이를 해요!' },
+    EYE: { scene: '👀 ✨', en: 'Close your eyes and make a wish!', ko: '두 눈을 꼭 감고 소원을 빌어 보세요!' },
+    NOSE: { scene: '👃 🌸', en: 'I smell pretty flowers with my nose.', ko: '나는 코로 예쁜 꽃향기를 맡아요.' },
+    HAND: { scene: '🧼 🤲', en: 'Wash your hands clean with soap!', ko: '비누로 두 손을 깨끗하게 씻어요!' },
+    KING: { scene: '👑 🏰', en: 'The kind king lives in a big castle.', ko: '친절한 임금님이 커다란 성에 살고 있어요.' },
+  };
+  const BICYCLE_FIX = { scene: '🚲 🌳', en: 'I can ride my bicycle in the park.', ko: '나는 공원에서 신나게 자전거를 탈 수 있어요.' };
+  ENGLISH_STORY_SENTENCES.BICYCLE = BICYCLE_FIX;
   const NOVELTY_VOICE_BLACKLIST = [
     'albert',
     'bad news',
@@ -454,6 +545,7 @@
       this.activeSessionId = 0;
       this.stepTimers = [];
       this.bestVoice = null;
+      this.bestKoreanVoice = null;
       this.sharedAudio = typeof Audio !== 'undefined' ? new Audio() : null;
       if (this.sharedAudio) {
         this.sharedAudio.preload = 'auto';
@@ -465,6 +557,7 @@
       if (typeof window === 'undefined' || !window.speechSynthesis) return;
       const updateVoices = () => {
         this.bestVoice = this.pickBestEnglishVoice();
+        this.bestKoreanVoice = this.pickBestKoreanVoice();
       };
       updateVoices();
       if (typeof window.speechSynthesis.addEventListener === 'function') {
@@ -472,6 +565,163 @@
       } else {
         window.speechSynthesis.onvoiceschanged = updateVoices;
       }
+    }
+
+    pickBestKoreanVoice() {
+      if (typeof window === 'undefined' || !window.speechSynthesis) return null;
+      const voices = window.speechSynthesis.getVoices() || [];
+      const koVoices = voices.filter((v) =>
+        String(v.lang || '').toLowerCase().startsWith('ko')
+      );
+      if (koVoices.length === 0) return null;
+
+      const scoreKo = (v) => {
+        let s = 100;
+        const name = String(v.name || '').toLowerCase();
+        if (name.includes('google')) s += 400;
+        if (name.includes('natural') || name.includes('sunhi') || name.includes('injoon')) s += 420;
+        if (name.includes('premium') || name.includes('enhanced') || name.includes('siri')) s += 380;
+        if (name.includes('yuna') || name.includes('sora')) s += 300;
+        return s;
+      };
+
+      koVoices.sort((a, b) => scoreKo(b) - scoreKo(a));
+      return koVoices[0];
+    }
+
+    getStorySentence(word) {
+      const clean = String(word || '').trim().toUpperCase().replace(/[^A-Z]/g, '');
+      if (ENGLISH_STORY_SENTENCES[clean]) {
+        return ENGLISH_STORY_SENTENCES[clean];
+      }
+      return {
+        scene: '🌟 📖',
+        en: `This is a nice ${clean.toLowerCase()}.`,
+        ko: `참 멋진 ${clean} 단어를 배웠어요!`,
+      };
+    }
+
+    // 까이유(Caillou)처럼 쉬운 영어 예시 문장을 읽어준 뒤 -> 한글 문장으로 뜻을 말해주는 함수
+    speakStorySentence(word, callbacks = {}) {
+      const story = this.getStorySentence(word);
+      this.stop();
+      const sessionId = this.activeSessionId;
+      soundInstance.setSpeechActive(true);
+
+      const { onEnglishStart, onKoreanStart, onEnd } = callbacks;
+
+      const finishStory = () => {
+        if (this.activeSessionId !== sessionId) return;
+        soundInstance.setSpeechActive(false);
+        if (typeof onEnd === 'function') onEnd();
+      };
+
+      const schedule = (fn, delayMs) => {
+        const tid = setTimeout(() => {
+          if (this.activeSessionId !== sessionId) return;
+          fn();
+        }, delayMs);
+        this.stepTimers.push(tid);
+      };
+
+      const speakKoreanMeaning = () => {
+        if (this.activeSessionId !== sessionId) return;
+        if (typeof onKoreanStart === 'function') onKoreanStart(story.ko);
+
+        if (
+          typeof window !== 'undefined' &&
+          window.speechSynthesis &&
+          typeof SpeechSynthesisUtterance !== 'undefined'
+        ) {
+          try {
+            const koUtter = new SpeechSynthesisUtterance(story.ko);
+            koUtter.lang = 'ko-KR';
+            if (!this.bestKoreanVoice) {
+              this.bestKoreanVoice = this.pickBestKoreanVoice();
+            }
+            if (this.bestKoreanVoice) {
+              koUtter.voice = this.bestKoreanVoice;
+              koUtter.lang = this.bestKoreanVoice.lang || 'ko-KR';
+            }
+            koUtter.rate = 0.96;
+            koUtter.pitch = 1.06;
+            koUtter.volume = 1.0;
+
+            let settled = false;
+            const doneOnce = () => {
+              if (settled) return;
+              settled = true;
+              finishStory();
+            };
+            koUtter.onend = doneOnce;
+            koUtter.onerror = doneOnce;
+            const safetyId = setTimeout(doneOnce, 2800);
+            this.stepTimers.push(safetyId);
+            window.speechSynthesis.speak(koUtter);
+            return;
+          } catch (e) {}
+        }
+
+        schedule(finishStory, 900);
+      };
+
+      const speakEnglishLine = () => {
+        if (this.activeSessionId !== sessionId) return;
+        if (typeof onEnglishStart === 'function') onEnglishStart(story.en);
+
+        if (
+          typeof window !== 'undefined' &&
+          window.speechSynthesis &&
+          typeof SpeechSynthesisUtterance !== 'undefined'
+        ) {
+          try {
+            const enUtter = new SpeechSynthesisUtterance(story.en);
+            enUtter.lang = 'en-US';
+            if (!this.bestVoice) {
+              this.bestVoice = this.pickBestEnglishVoice();
+            }
+            if (this.bestVoice) {
+              enUtter.voice = this.bestVoice;
+              enUtter.lang = this.bestVoice.lang || 'en-US';
+            }
+            // 6세 아이가 잘 알아들을 수 있도록 또렷하고 부드러운 애니메이션 속도
+            enUtter.rate = 0.84;
+            enUtter.pitch = 1.05;
+            enUtter.volume = 1.0;
+
+            let settled = false;
+            const doneOnce = () => {
+              if (settled) return;
+              settled = true;
+              schedule(speakKoreanMeaning, 280);
+            };
+            enUtter.onend = doneOnce;
+            enUtter.onerror = doneOnce;
+            const safetyId = setTimeout(doneOnce, 3200);
+            this.stepTimers.push(safetyId);
+            window.speechSynthesis.speak(enUtter);
+            return;
+          } catch (e) {}
+        }
+
+        // 클라우드 영어 문장 오디오 폴백
+        if (this.sharedAudio) {
+          try {
+            this.sharedAudio.src = `https://dict.youdao.com/dictvoice?type=2&audio=${encodeURIComponent(story.en)}`;
+            this.sharedAudio.onended = () => schedule(speakKoreanMeaning, 250);
+            this.sharedAudio.onerror = () => schedule(speakKoreanMeaning, 250);
+            const p = this.sharedAudio.play();
+            if (p && typeof p.catch === 'function') {
+              p.catch(() => schedule(speakKoreanMeaning, 250));
+            }
+            return;
+          } catch (e) {}
+        }
+
+        schedule(speakKoreanMeaning, 400);
+      };
+
+      schedule(speakEnglishLine, 60);
     }
 
     // 기기에 설치된 음성 중 가장 자연스럽고 원어민다운 미국 영어(en-US) Neural/Premium 음성 선택
