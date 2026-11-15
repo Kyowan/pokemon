@@ -515,6 +515,7 @@ elementsById['btn-admin-reset-all'].click();
 elementsById['btn-admin-confirm-reset-yes'].click();
 assert(window.GameStorage.getUniqueCaughtTotal() === 0, 'Confirming Reset All clears all caught Pokémon back to 0');
 assert(app.currentScreen === 'title', 'After full reset, game returns to Title screen');
+elementsById['btn-close-admin'].click();
 
 // 7. Test Pokedex Uncaught Hint Peek ("👁️ 힌트" button & "👁️ 전체 힌트 보기" toggle)
 elementsById['btn-open-pokedex'].click();
@@ -540,5 +541,45 @@ elementsById['btn-dex-peek-all'].click();
 const secondCardAfterAll = elementsById['pokedex-grid'].children[1];
 const secondNameAfterAll = secondCardAfterAll.children.find(c => c.classList && c.classList.contains('dex-name'));
 assert(secondNameAfterAll.textContent === window.POKEMON_DATA[1].name, 'Clicking "👁️ 전체 힌트 보기" reveals all uncaught Pokémon names & images');
+elementsById['btn-close-pokedex'].click();
+
+// 8. Test Daily Time-Up -> Open Pokedex stays open -> Admin Refill Time resumes field & home/continue buttons
+elementsById['btn-start-game'].click();
+regionCards[0].click();
+assert(app.currentScreen === 'field' && app.fieldActive === true, 'Entered field screen for time-up test');
+
+// Simulate daily time limit (10 mins = 600s) reached
+window.GameStorage.setDailyLimits({ dailyTimeLimitMinutes: 10 });
+window.GameStorage.addPlayTime(600);
+app.tickDailyTimer();
+assert(!elementsById['modal-daily-limit'].classList.contains('hidden'), 'Daily time-up lock modal pops up');
+assert(app.fieldActive === false, 'Field pauses when daily time-up modal pops up');
+
+// Click "📖 잡은 포켓몬 도감 구경하기" -> Pokedex must stay open even when timer ticks
+elementsById['btn-limit-open-pokedex'].click();
+assert(elementsById['modal-daily-limit'].classList.contains('hidden'), 'Daily limit modal hides when opening Pokedex');
+assert(!elementsById['modal-pokedex'].classList.contains('hidden'), 'Pokedex modal opens from Daily limit modal');
+app.tickDailyTimer();
+app.tickDailyTimer();
+assert(!elementsById['modal-pokedex'].classList.contains('hidden'), 'Pokedex stays open after timer ticks');
+assert(elementsById['modal-daily-limit'].classList.contains('hidden'), 'Daily limit modal does NOT pop back over Pokedex');
+
+// Close Pokedex -> lock modal returns on field -> open Admin -> refill time -> close Admin -> field resumes
+elementsById['btn-close-pokedex'].click();
+assert(!elementsById['modal-daily-limit'].classList.contains('hidden'), 'Lock modal returns if closing Pokedex while still locked on field');
+
+elementsById['btn-limit-open-admin'].click();
+elementsById['admin-password-input'].value = '7788';
+elementsById['btn-admin-password-submit'].click();
+elementsById['btn-admin-refill-time'].click();
+assert(elementsById['modal-daily-limit'].classList.contains('hidden'), 'Daily limit modal hides after admin refills time');
+elementsById['btn-close-admin'].click();
+assert(app.currentScreen === 'field' && app.fieldActive === true, 'Field resumes immediately after closing Admin modal');
+
+// Home button -> Title -> Continue button -> Region screen works cleanly
+elementsById['btn-home'].click();
+assert(app.currentScreen === 'title', 'Home button navigates to Title screen cleanly');
+elementsById['btn-start-game'].click();
+assert(app.currentScreen === 'region', 'Continue journey button navigates to Region screen after refill');
 
 print('\n=== ALL FEATURES & E2E SCENARIOS PASSED 100% ✅ ===');

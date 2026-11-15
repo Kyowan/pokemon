@@ -271,15 +271,8 @@
         return;
       }
 
-      const adminModal = document.getElementById('modal-admin');
-      const limitModal = document.getElementById('modal-daily-limit');
-      const profileModal = document.getElementById('modal-profile');
-      const isAdminOpen = adminModal && !adminModal.classList.contains('hidden');
-      const isLimitOpen = limitModal && !limitModal.classList.contains('hidden');
-      const isProfileOpen = profileModal && !profileModal.classList.contains('hidden');
-
-      // 관리자 설정창, 프로필 설정창, 제한 안내창이 열려 있을 때는 시간을 차감하지 않음
-      if (isAdminOpen || isLimitOpen || isProfileOpen) {
+      // 도감, 관리자 설정, 프로필 설정, 일일 제한 등 어떤 모달이라도 열려 있으면 시간 차감 및 잠금 모달 재표시 안 함
+      if (this.isAnyModalOpen()) {
         this.updateDailyLimitBadges();
         return;
       }
@@ -392,6 +385,8 @@
       // 상단바 버튼
       document.getElementById('btn-home').addEventListener('click', () => {
         window.SoundFX.click();
+        this.closeModals();
+        document.getElementById('modal-daily-limit').classList.add('hidden');
         this.showScreen('title');
       });
 
@@ -481,12 +476,18 @@
       document.getElementById('btn-close-pokedex').addEventListener('click', () => {
         window.SoundFX.click();
         document.getElementById('modal-pokedex').classList.add('hidden');
+        this.handlePokedexClosed();
       });
 
       document.querySelectorAll('.modal-overlay').forEach((overlay) => {
         overlay.addEventListener('click', (e) => {
           if (e.target === overlay && overlay.id !== 'modal-daily-limit') {
             overlay.classList.add('hidden');
+            if (overlay.id === 'modal-pokedex') {
+              this.handlePokedexClosed();
+            } else if (overlay.id === 'modal-admin') {
+              this.resumePlayIfUnlocked();
+            }
           }
         });
       });
@@ -1224,6 +1225,7 @@
       document.getElementById('btn-close-admin').addEventListener('click', () => {
         window.SoundFX.click();
         document.getElementById('modal-admin').classList.add('hidden');
+        this.resumePlayIfUnlocked();
       });
 
       const pwInput = document.getElementById('admin-password-input');
@@ -1265,6 +1267,7 @@
           this.updateDailyLimitBadges(status);
           if (!status.isLocked) {
             document.getElementById('modal-daily-limit').classList.add('hidden');
+            this.resumePlayIfUnlocked();
           }
           this.showAdminToast(
             mins > 0 ? `하루 게임 시간이 ${mins}분으로 설정되었습니다.` : '하루 게임 시간이 무제한으로 설정되었습니다.'
@@ -1282,6 +1285,7 @@
           this.updateDailyLimitBadges(status);
           if (!status.isLocked) {
             document.getElementById('modal-daily-limit').classList.add('hidden');
+            this.resumePlayIfUnlocked();
           }
           this.showAdminToast(
             hearts > 0 ? `하루 총 하트가 ${hearts}개로 설정되었습니다.` : '하루 총 하트가 무제한으로 설정되었습니다.'
@@ -1297,8 +1301,11 @@
         this.updateDailyLimitBadges(status);
         if (!status.isLocked) {
           document.getElementById('modal-daily-limit').classList.add('hidden');
+          this.resumePlayIfUnlocked();
+          this.showAdminToast('⚡ 오늘 사용한 게임 시간이 0분으로 초기화되었습니다! 창을 닫으면 바로 이어집니다.');
+        } else if (status.isHeartsUp) {
+          this.showAdminToast('⚡ 시간은 초기화되었지만 오늘 하트가 0개입니다! 아래에서 하트도 충전해 주세요.');
         }
-        this.showAdminToast('⚡ 오늘 사용한 게임 시간이 0분으로 초기화되었습니다!');
       });
 
       // 오늘 사용한 하트 리셋(충전)
@@ -1313,8 +1320,11 @@
         }
         if (!status.isLocked) {
           document.getElementById('modal-daily-limit').classList.add('hidden');
+          this.resumePlayIfUnlocked();
+          this.showAdminToast('💖 오늘의 하트가 가득 충전되었습니다! 창을 닫으면 바로 이어집니다.');
+        } else if (status.isTimeUp) {
+          this.showAdminToast('💖 하트는 충전되었지만 오늘 게임 시간이 끝났습니다! 위에서 시간도 리셋해 주세요.');
         }
-        this.showAdminToast('💖 오늘의 하트가 가득 충전되었습니다!');
       });
 
       // 전체 초기화 버튼 및 확인창
@@ -1469,11 +1479,51 @@
       );
     }
 
+    resumePlayIfUnlocked() {
+      const status = window.GameStorage.getDailyStatus();
+      if (status.isLocked) return;
+
+      const limitModal = document.getElementById('modal-daily-limit');
+      if (limitModal) limitModal.classList.add('hidden');
+
+      if (this.currentScreen === 'field') {
+        this.fieldActive = true;
+        this.lastFrameTime = performance.now();
+      } else if (this.currentScreen === 'battle' && this.battle) {
+        const resultActions = document.getElementById('battle-result-actions');
+        const isResultVisible = resultActions && !resultActions.classList.contains('hidden');
+        if (this.battle.phase === 'done' && !isResultVisible) {
+          this.battle.phase = 'quiz';
+          this.battle.hearts = 3;
+          this.inputLocked = false;
+          this.renderBattleHearts();
+          this.renderCurrentBattleQuestion();
+        }
+      }
+    }
+
+    handlePokedexClosed() {
+      const status = window.GameStorage.getDailyStatus();
+      if (status.isLocked && (this.currentScreen === 'field' || this.currentScreen === 'battle')) {
+        this.showDailyLimitModal(status.isHeartsUp ? 'heart' : 'time');
+      } else {
+        this.resumePlayIfUnlocked();
+      }
+    }
+
     closeModals() {
+      const wasPokedexOpen = !document.getElementById('modal-pokedex').classList.contains('hidden');
+      const wasAdminOpen = !document.getElementById('modal-admin').classList.contains('hidden');
       document.getElementById('modal-pokedex').classList.add('hidden');
       document.getElementById('modal-admin').classList.add('hidden');
       if (window.GameStorage.hasProfile()) {
+        this.stopWebcamCapture();
         document.getElementById('modal-profile').classList.add('hidden');
+      }
+      if (wasPokedexOpen) {
+        this.handlePokedexClosed();
+      } else if (wasAdminOpen) {
+        this.resumePlayIfUnlocked();
       }
     }
 
@@ -2691,6 +2741,9 @@
 
     // ==================== 포켓몬 도감 모달 ====================
     openPokedexModal(defaultFilter) {
+      const limitModal = document.getElementById('modal-daily-limit');
+      if (limitModal) limitModal.classList.add('hidden');
+
       if (defaultFilter) {
         this.dexFilter = defaultFilter;
         document.querySelectorAll('[data-dex-filter]').forEach((b) =>
