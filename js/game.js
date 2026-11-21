@@ -220,7 +220,11 @@
       // 배틀 상태
       this.battle = null;
       this.inputLocked = false;
-      this.usedQuestionKeys = new Set();
+      this.usedQuestionKeys = new Set(
+        window.GameStorage && typeof window.GameStorage.getRecentQuestionKeys === 'function'
+          ? window.GameStorage.getRecentQuestionKeys()
+          : []
+      );
 
       // 하루 이용 시간 타이머
       this.playTimerId = null;
@@ -1648,12 +1652,13 @@
           y = 90 + Math.random() * (this.fieldHeight - 160);
           tries++;
         } while (
-          Math.hypot(x - this.player.x, y - this.player.y) < 150 &&
+          Math.hypot(x - this.player.x, y - this.player.y) < 180 &&
           tries < 20
         );
 
         const angle = Math.random() * Math.PI * 2;
-        const speed = (isGold ? 95 : 65) + Math.random() * 45;
+        // 아이가 충분히 보고 다가갈 수 있도록 포켓볼이 아주 느리게 움직이도록 설정
+        const speed = (isGold ? 20 : 14) + Math.random() * 10;
         this.balls.push({
           id: `ball_${Date.now()}_${i}`,
           x,
@@ -2166,25 +2171,55 @@
     pickLearningQuestions(count) {
       const categories = ['math', 'korean', 'english', 'creativity'];
       const selected = [];
+      const selectedKeys = new Set();
 
       for (let i = 0; i < count; i++) {
         const cat = categories[i % categories.length];
-        if (cat === 'math' && Math.random() < 0.35) {
-          selected.push(generateDynamicMathQuestion());
-          continue;
+        if (cat === 'math' && Math.random() < 0.35 && typeof window.generateDynamicMathQuestion === 'function') {
+          let dynQ = null;
+          let dynKey = '';
+          for (let attempt = 0; attempt < 12; attempt++) {
+            const candidate = window.generateDynamicMathQuestion();
+            const cText = candidate.question || candidate.q;
+            const cKey = `math:${cText}`;
+            if (!this.usedQuestionKeys.has(cKey) && !selectedKeys.has(cKey)) {
+              dynQ = candidate;
+              dynKey = cKey;
+              break;
+            }
+            if (!dynQ) {
+              dynQ = candidate;
+              dynKey = cKey;
+            }
+          }
+          if (dynQ) {
+            this.usedQuestionKeys.add(dynKey);
+            selectedKeys.add(dynKey);
+            selected.push(dynQ);
+            continue;
+          }
         }
 
         const bank = window.QUESTION_BANK[cat] || [];
-        let unused = bank.filter(
-          (q) => !this.usedQuestionKeys.has(`${cat}:${q.question || q.q}`)
-        );
+        let unused = bank.filter((q) => {
+          const key = `${cat}:${q.question || q.q}`;
+          return !this.usedQuestionKeys.has(key) && !selectedKeys.has(key);
+        });
         if (unused.length === 0) {
-          this.usedQuestionKeys.clear();
-          unused = bank;
+          // 해당 카테고리의 문제만 순환 초기화 (다른 카테고리 기록은 유지)
+          for (const key of Array.from(this.usedQuestionKeys)) {
+            if (key.startsWith(`${cat}:`)) {
+              this.usedQuestionKeys.delete(key);
+            }
+          }
+          unused = bank.filter((q) => !selectedKeys.has(`${cat}:${q.question || q.q}`));
+          if (unused.length === 0) unused = bank;
         }
         const item = unused[Math.floor(Math.random() * unused.length)];
         const questionText = item.question || item.q;
-        this.usedQuestionKeys.add(`${cat}:${questionText}`);
+        const pickedKey = `${cat}:${questionText}`;
+        this.usedQuestionKeys.add(pickedKey);
+        selectedKeys.add(pickedKey);
 
         selected.push({
           category: cat,
@@ -2192,6 +2227,10 @@
           options: shuffleArray(item.options),
           answer: item.answer,
         });
+      }
+
+      if (window.GameStorage && typeof window.GameStorage.saveRecentQuestionKeys === 'function') {
+        window.GameStorage.saveRecentQuestionKeys(Array.from(this.usedQuestionKeys));
       }
 
       return shuffleArray(selected);

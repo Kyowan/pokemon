@@ -47,6 +47,7 @@
           totalCaught: 0,
           questionsSolved: 0,
         },
+        recentQuestionKeys: [],
       };
     }
 
@@ -76,6 +77,9 @@
             ...def.stats,
             ...(parsed.stats || {}),
           },
+          recentQuestionKeys: Array.isArray(parsed.recentQuestionKeys)
+            ? parsed.recentQuestionKeys
+            : [],
         };
       } catch (e) {
         return this.memoryFallback || this.getDefaultState();
@@ -321,6 +325,19 @@
       }
       this.save();
       return this.getProfile();
+    }
+
+    getRecentQuestionKeys() {
+      return Array.isArray(this.state.recentQuestionKeys)
+        ? this.state.recentQuestionKeys
+        : [];
+    }
+
+    saveRecentQuestionKeys(keys) {
+      const list = Array.isArray(keys) ? keys : Array.from(keys || []);
+      // 최근 최대 1000문항까지 기억해 새로고침·다음 날에도 중복 출제를 최소화
+      this.state.recentQuestionKeys = list.slice(-1000);
+      this.save();
     }
   }
 

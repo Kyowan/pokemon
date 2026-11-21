@@ -708,12 +708,20 @@
         // 클라우드 영어 문장 오디오 폴백
         if (this.sharedAudio) {
           try {
+            let fallbackSettled = false;
+            const onFallbackDone = () => {
+              if (fallbackSettled || this.activeSessionId !== sessionId) return;
+              fallbackSettled = true;
+              this.sharedAudio.onended = null;
+              this.sharedAudio.onerror = null;
+              schedule(speakKoreanMeaning, 250);
+            };
             this.sharedAudio.src = `https://dict.youdao.com/dictvoice?type=2&audio=${encodeURIComponent(story.en)}`;
-            this.sharedAudio.onended = () => schedule(speakKoreanMeaning, 250);
-            this.sharedAudio.onerror = () => schedule(speakKoreanMeaning, 250);
+            this.sharedAudio.onended = onFallbackDone;
+            this.sharedAudio.onerror = onFallbackDone;
             const p = this.sharedAudio.play();
             if (p && typeof p.catch === 'function') {
-              p.catch(() => schedule(speakKoreanMeaning, 250));
+              p.catch(onFallbackDone);
             }
             return;
           } catch (e) {}
@@ -865,6 +873,8 @@
       const cached = this.wordCache[cleanWord];
       if (this.sharedAudio && cached && cached.audioUrl) {
         try {
+          this.sharedAudio.onended = null;
+          this.sharedAudio.onerror = null;
           this.sharedAudio.src = cached.audioUrl;
           this.sharedAudio.load();
         } catch (e) {}
@@ -891,21 +901,44 @@
         const entry = this.wordCache[cleanWord];
         // 1순위: Free Dictionary API의 스튜디오 원어민 녹음 MP3 재생 시도
         if (this.sharedAudio && entry && entry.audioUrl) {
+          let settled = false;
+          const cleanupHandlers = () => {
+            if (this.sharedAudio) {
+              this.sharedAudio.onended = null;
+              this.sharedAudio.onerror = null;
+            }
+          };
+          const finishMp3 = () => {
+            if (settled || this.activeSessionId !== sessionId) return;
+            settled = true;
+            cleanupHandlers();
+            finishAll();
+          };
+          const fallbackToTTS = () => {
+            if (settled || this.activeSessionId !== sessionId) return;
+            settled = true;
+            cleanupHandlers();
+            this.speakSingleToken(cleanWord.toLowerCase(), true, sessionId, finishAll);
+          };
+
           try {
             if (this.sharedAudio.src !== entry.audioUrl) {
               this.sharedAudio.src = entry.audioUrl;
             }
             this.sharedAudio.currentTime = 0;
-            this.sharedAudio.onended = () => finishAll();
-            this.sharedAudio.onerror = () => this.speakSingleToken(cleanWord.toLowerCase(), true, sessionId, finishAll);
+            this.sharedAudio.onended = finishMp3;
+            this.sharedAudio.onerror = fallbackToTTS;
             const playPromise = this.sharedAudio.play();
             if (playPromise && typeof playPromise.then === 'function') {
-              playPromise.catch(() => {
-                this.speakSingleToken(cleanWord.toLowerCase(), true, sessionId, finishAll);
-              });
+              playPromise.catch(fallbackToTTS);
               return;
             }
-          } catch (e) {}
+            // playPromise가 없는 환경에서는 onended가 오지 않을 수 있으므로 fallback 대신 그대로 대기
+            return;
+          } catch (e) {
+            fallbackToTTS();
+            return;
+          }
         }
 
         // 2순위: 원어민 Neural en-US 음성(Google US English / Samantha / Aria)으로 단어 발음
